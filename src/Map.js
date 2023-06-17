@@ -93,7 +93,7 @@ function initMap(options) {
   const payload = {
     type: 'JOIN',
     payload: {
-      authorization: 'Basic bHVpcy5sb3phbm9AdWMuY2w6MTg2Mzk2OTA=',
+      authorization: import.meta.env.VITE_AUTH,
     },
   };
   console.log(`Connecting to: ${url}. Sending: ${payload}`);
