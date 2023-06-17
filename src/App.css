@@ -1,0 +1,97 @@
+body {
+  background-color: #0a7ca3;
+}
+.Titulo {
+  color: #f5efed;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 20px;
+  margin-left: 50px;
+  padding: 0;
+}
+.Pedido {
+  display: flex;
+  flex-direction: row;
+  margin-left: 50px;
+  margin-right: 50px;
+  border: 10px solid #0e4058;
+  border-radius: 10px;
+  height: 100px;
+}
+
+.Eleccion {
+  width: 50%;
+  padding-left: 10px;
+  box-sizing: border-box;
+  background-color: #f5efed;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+h1 {
+  color: #f5efed;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 40px;
+  margin: 0;
+  padding: 0;
+}
+
+h2 {
+  color: #13131d;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 30px;
+  margin: 10px;
+  padding: 0;
+}
+
+.App {
+  display: flex;
+  flex-direction: row;
+  margin-left: 50px;
+  margin-right: 50px;
+  margin-bottom: 10px;
+  border: 10px solid #0e4058;
+  border-radius: 10px;
+}
+
+
+.map {
+  padding: 16px;
+  height: 500px;
+  width: 60%;
+}
+
+.content {
+  width: 40%;
+  padding-left: 10px;
+  box-sizing: border-box;
+  background-color: #f5efed;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* Resto del archivo App.css sin cambios */
+
+.chat {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 2px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+  margin-right: 5px;
+}
+
+.chat-message {
+  margin-bottom: 5px;
+}
+
+.input-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-right: 5px;
+}
+
+.input-message {
+  flex: 1;
+  margin-right: 10px;
+}
+
