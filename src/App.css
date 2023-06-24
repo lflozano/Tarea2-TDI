@@ -95,3 +95,41 @@ h2 {
   margin-right: 10px;
 }
 
+button {
+  background-color: #0a7ca3;
+  color: #f5efed;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 20px;
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.Eleccion button {
+  background-color: #0a7ca3;
+  color: #f5efed;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 20px;
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  cursor: pointer;
+  margin-top: 25px;
+}
+
+#popup-container {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  z-index: 1000;
+}
+
+.popup-content {
+  background-color: white;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  padding: 5px;
+  margin-bottom: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}

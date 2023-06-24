@@ -39,9 +39,31 @@ async function getProductInfo(productId) {
   }
 }
 
+let popupIndex = 0;
+
+function addPopupToScreen(content) {
+  const popupContainer = document.createElement('div');
+  popupContainer.classList.add('popup-content');
+
+  const statusContent = document.createElement('div');
+  statusContent.innerHTML = content;
+
+  popupContainer.appendChild(statusContent);
+
+  const popupContainerElement = document.getElementById('popup-container');
+  popupContainerElement.appendChild(popupContainer);
+
+  setTimeout(() => {
+    popupContainerElement.removeChild(popupContainer);
+    popupIndex--;
+  }, 2000); // Aumentamos el tiempo para que se muestren durante 10 segundos
+
+  popupIndex++;
+}
+
 function initMap(options) {
   const { 
-    mapContainer, onUsers, onDeliveries, onPosition, onChat, onRestaurants, onProducts, onDestinations 
+    mapContainer, onUsers, onDeliveries, onPosition, onChat, onRestaurants, onProducts, onDestinations, onOrderDelivered
   } = options;
 
   Promise.all([
@@ -73,7 +95,7 @@ function initMap(options) {
   const deliveryColors = {};
   const delivererRoutes = {};
   const deliveryLines = {};
-
+  const timeouts = {};
 
   var myIcon = L.icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/66/66841.png',
@@ -93,7 +115,7 @@ function initMap(options) {
   const payload = {
     type: 'JOIN',
     payload: {
-      authorization: import.meta.env.VITE_AUTH,
+      authorization: 'Basic bHVpcy5sb3phbm9AdWMuY2w6MTg2Mzk2OTA=',
     },
   };
   console.log(`Connecting to: ${url}. Sending: ${payload}`);
@@ -152,29 +174,23 @@ function initMap(options) {
         }
       } else { 
         if (delivererPositions[deliveryId]) {
-          // Actualiza la posición del pin existente
           delivererPositions[deliveryId].setLatLng([position.lat, position.long]);
         } else {
-          // Crea un nuevo pin y agrégalo al mapa
           const delivererMarker = L.marker([position.lat, position.long], { icon: myIcon });
           delivererMarker.addTo(map);
           delivererPositions[deliveryId] = delivererMarker;
         }
-        // Almacenar y actualizar la ruta del repartidor
         if (delivererRoutes[deliveryId]) {
-          // Agrega la nueva posición a la ruta existente
           delivererRoutes[deliveryId].addLatLng([position.lat, position.long]);
         } else {
-          // Obtén el color de la línea entre el restaurante y el destino
           const lineColor = deliveryColors[deliveryId];
 
           if (lineColor) {
-            // Crea una nueva ruta y agrégala al mapa con el color correspondiente
             const delivererRoute = L.polyline(
               [[position.lat, position.long]],
               {
                 color: lineColor,
-                dashArray: '5, 10', // Línea punteada
+                dashArray: '5, 10',
               }
             );
             delivererRoute.addTo(map);
@@ -213,16 +229,13 @@ function initMap(options) {
             line.addTo(map);
             line.deliveryId = delivery.id;
 
-            // Guardar la línea en el objeto deliveryLines
             deliveryLines[delivery.id] = line;
           }
           delivery.status = delivery.status || 'pending';
 
-          // Almacena la información en el objeto delivery si es necesario
           const productId = delivery.product_id;
           const productInfo = await getProductInfo(productId);
 
-          // Asocia la información del producto al delivery
           delivery.productInfo = productInfo;
           
           if (delivererPositions[delivery.id]) {
@@ -248,6 +261,10 @@ function initMap(options) {
       if (deliveryLine) {
         deliveryLine.status = event.payload.status;
       }
+
+      if (event.payload.status === 'DELIVERED') {
+        onOrderDelivered();
+      }
     
       const delivererMarker = delivererPositions[deliveryId];
       if (delivererMarker) {
@@ -255,56 +272,10 @@ function initMap(options) {
           <p><b>Delivery ID:</b> ${deliveryId}</p>
           <p><b>Delivery Status:</b> ${event.payload.status}</p>
         `;
-        const popup = new L.Popup({ autoClose: false, closeOnClick: false })
-        .setLatLng(delivererMarker.getLatLng())
-        .setContent(statusContent);
-        
-        delivererMarker.bindPopup(popup).openPopup();
-        // Eliminar el ícono del repartidor y la ruta cuando el estado de la entrega sea 'DELIVERED'
-        if (event.payload.status === 'DELIVERED') {
-          setTimeout(() => {
-            if (delivererMarker) {
-              delivererMarker.closePopup(); // Cierra el pop-up antes de eliminar el marcador
-              delivererMarker.remove(); // Elimina el marcador del mapa
-              delete delivererPositions[deliveryId]; // Elimina el marcador del objeto
-            }
-            if (delivererRoutes[deliveryId]) {
-              delivererRoutes[deliveryId].remove(); // Elimina la ruta del mapa
-              delete delivererRoutes[deliveryId]; // Elimina la ruta del objeto
-            }
-          }, 1000);
-        } else if (event.payload.status === 'PREPARING_ORDER') {
-          // Cerrar el popup automáticamente después de 3 segundos para otros estados
-          setTimeout(() => {
-            if (delivererMarker) {
-              delivererMarker.closePopup();
-              delivererMarker.remove(); // Elimina el marcador del mapa
-              delete delivererPositions[deliveryId]; // Elimina el marcador del objeto
-            }
-            if (delivererRoutes[deliveryId]) {
-              delivererMarker.closePopup();
-              delivererMarker.remove(); // Elimina el marcador del mapa
-              delete delivererPositions[deliveryId]; // Elimina el marcador del objeto
-            }
-          }, 1000);
-        } else {
-          // Cerrar el popup automáticamente después de 3 segundos para otros estados
-          setTimeout(() => {
-            if (delivererMarker) {
-              delivererMarker.closePopup();
-              delivererMarker.remove(); // Elimina el marcador del mapa
-              delete delivererPositions[deliveryId]; // Elimina el marcador del objeto
-            }
-            if (delivererRoutes[deliveryId]) {
-              delivererMarker.closePopup();
-              delivererMarker.remove(); // Elimina el marcador del mapa
-              delete delivererPositions[deliveryId]; // Elimina el marcador del objeto
-            }
-          }, 1000);
-          
-        }
+    
+        addPopupToScreen(statusContent);
       }
-    }    
+    }        
   });
   setTimeout(function () {
     window.dispatchEvent(new Event('resize'));

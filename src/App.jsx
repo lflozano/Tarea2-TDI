@@ -8,6 +8,7 @@ function App() {
   const [deliveries, setDeliveries] = useState([]);
   const [positions, setPositions] = useState([]);
   const [chats, setChats] = useState([]);
+  const [currentOrder, setCurrentOrder] = useState(null);
 
   const [restaurants, setRestaurants] = useState([]);
   const [products, setProducts] = useState([]);
@@ -15,9 +16,9 @@ function App() {
   const [ingredients, setIngredients] = useState([]);
   const [courses, setCourses] = useState([]);
 
-  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [selectedDestination, setSelectedDestination] = useState(null);
+  const [selectedRestaurant, setSelectedRestaurant] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState('');
+  const [selectedDestination, setSelectedDestination] = useState('');  
 
   const mapFunctions = useRef(null);
 
@@ -33,16 +34,20 @@ function App() {
         onProducts: (updatedProducts) => {
           setCourses(updatedProducts.courses);
           setIngredients(updatedProducts.ingredients);
-          // Combina courses e ingredients en un solo array para mostrar en el menú desplegable
           setProducts([...updatedProducts.courses, ...updatedProducts.ingredients]);
         },
         onDestinations: (updatedDestinations) => setDestinations(updatedDestinations),
+        onOrderDelivered: handleOrderDelivered,
       });    
       if (mapFuncs) {
         mapFunctions.current = mapFuncs;
       }
     }
   }, []);
+
+  function handleOrderDelivered() {
+    setCurrentOrder(null);
+  }  
 
   // Función para renderizar los mensajes del chat
   function renderChatMessages() {
@@ -90,29 +95,34 @@ function App() {
   }
   
   async function handleCreateOrder() {
-    if (!selectedRestaurant || !selectedProduct || !selectedDestination) {
-      alert('Por favor, selecciona un restaurante, producto y destino.');
-      return;
-    }
+    if (currentOrder) {
+      alert('Ya tienes un pedido en curso. Por favor, espera a que se complete antes de realizar otro pedido.');
+    } else {
+      if (!selectedRestaurant || !selectedProduct || !selectedDestination) {
+        alert('Por favor, selecciona un restaurante, producto y destino.');
+        return;
+      }
 
-    const websocket = mapFunctions.current.websocket;
-  
-    if (!websocket || websocket.readyState !== WebSocket.OPEN) {
-      console.error('Error: Websocket no está disponible.');
-      return;
-    }
+      const websocket = mapFunctions.current.websocket;
+    
+      if (!websocket || websocket.readyState !== WebSocket.OPEN) {
+        console.error('Error: Websocket no está disponible.');
+        return;
+      }
 
-    const payload = {
-      "type": "ORDER",
-      "payload": {
-        "restaurant_id": selectedRestaurant,
-        "product_id": selectedProduct,
-        "destination": selectedDestination
-      },
-    };
-  
-    websocket.send(JSON.stringify(payload));
-    alert('Pedido enviado.');
+      const payload = {
+        "type": "ORDER",
+        "payload": {
+          "restaurant_id": selectedRestaurant,
+          "product_id": selectedProduct,
+          "destination": selectedDestination
+        },
+      };
+    
+      websocket.send(JSON.stringify(payload));
+      setCurrentOrder(payload);     
+      alert('Pedido enviado.');
+    }
   }  
 
   return (
@@ -121,7 +131,9 @@ function App() {
         <h1>rAPI Eats</h1>
       </div>
       <div className="App">
-        <div className="map" ref={mapContainerRef}></div>
+        <div className="map" ref={mapContainerRef}>
+          <div id="popup-container"></div>
+        </div>
         <div className="content">
           <h2>Chat</h2>
           <div className="chat">{renderChatMessages()}</div>
@@ -148,7 +160,7 @@ function App() {
           </select>
         </div>
         <div className="Eleccion">
-          <h2>Ingrediente</h2>
+          <h2>Producto</h2>
           <select value={selectedProduct} onChange={(e) => setSelectedProduct(e.target.value)}>
             <option value="" disabled>Selecciona un producto</option>
             {Array.isArray(products) && products.map((product) => (
